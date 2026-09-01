@@ -26,6 +26,7 @@
     courseFilter: 'all',
     showCompleted: false,
     editingSchedule: false,
+    sidebarMonth: startOfMonth(new Date()),
     selectedCourseId: null,
     courseTab: 'home',
     courseCache: new Map(),
@@ -379,9 +380,60 @@
       </main>
 
       <aside class="elms-status-rail" aria-label="Canvas status">
-        <button type="button" data-sync ${state.syncing ? 'disabled' : ''}>${state.syncing ? 'syncing…' : 'sync now'}</button>
-        ${state.warnings.map((warning) => `<p>${esc(warning)}</p>`).join('')}
+        <div class="elms-status-copy">
+          <button type="button" data-sync ${state.syncing ? 'disabled' : ''}>${state.syncing ? 'syncing…' : 'sync now'}</button>
+          ${state.warnings.map((warning) => `<p>${esc(warning)}</p>`).join('')}
+        </div>
+        ${renderMiniAssignmentCalendar()}
       </aside>
+    `;
+  }
+
+  function renderMiniAssignmentCalendar() {
+    const month = startOfMonth(state.sidebarMonth);
+    const gridStart = addDays(month, -month.getDay());
+    const days = Array.from({ length: 42 }, (_, index) => addDays(gridStart, index));
+    const tasksByDay = new Map();
+
+    getVisibleTasks().forEach((task) => {
+      const key = localDateKey(task.dueAt);
+      const tasks = tasksByDay.get(key) || [];
+      tasks.push(task);
+      tasksByDay.set(key, tasks);
+    });
+
+    return `
+      <section class="elms-mini-calendar" aria-label="Assignment calendar for ${esc(monthLabel(month))}">
+        <header>
+          <button type="button" data-mini-month="previous" aria-label="Previous month">←</button>
+          <strong>${esc(monthLabel(month))}</strong>
+          <button type="button" data-mini-month="next" aria-label="Next month">→</button>
+        </header>
+        <div class="elms-mini-weekdays" aria-hidden="true">
+          ${['s', 'm', 't', 'w', 't', 'f', 's'].map((day) => `<span>${day}</span>`).join('')}
+        </div>
+        <div class="elms-mini-month">
+          ${days.map((day) => {
+            const tasks = (tasksByDay.get(localDateKey(day)) || []).sort((left, right) => left.dueAt - right.dueAt);
+            const outsideMonth = day.getMonth() !== month.getMonth();
+            return `
+              <div class="elms-mini-day${outsideMonth ? ' is-outside' : ''}${sameDay(day, new Date()) ? ' is-today' : ''}">
+                <span>${day.getDate()}</span>
+                <div class="elms-mini-assignments">
+                  ${tasks.map((task) => `
+                    <a
+                      class="tone-${task.tone}${isTaskComplete(task) ? ' is-complete' : ''}"
+                      href="${esc(task.url)}"
+                      title="${esc(`${task.courseName} — ${task.title} · ${formatTime(task.dueAt)}`)}"
+                      aria-label="Open ${esc(task.title)} for ${esc(task.courseName)}, due ${esc(formatLongDate(task.dueAt))} at ${esc(formatTime(task.dueAt))}"
+                    ></a>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </section>
     `;
   }
 
@@ -1076,6 +1128,14 @@
       return;
     }
 
+    const monthButton = event.target.closest('button[data-mini-month]');
+    if (monthButton) {
+      const amount = monthButton.dataset.miniMonth === 'previous' ? -1 : 1;
+      state.sidebarMonth = addMonths(state.sidebarMonth, amount);
+      renderShell();
+      return;
+    }
+
     const themeButton = event.target.closest('button[data-theme]');
     if (themeButton && ['dark', 'light'].includes(themeButton.dataset.theme)) {
       state.theme = themeButton.dataset.theme;
@@ -1527,6 +1587,18 @@
     return addDays(value, offset);
   }
 
+  function startOfMonth(date) {
+    const value = startOfDay(date);
+    value.setDate(1);
+    return value;
+  }
+
+  function addMonths(date, amount) {
+    const value = startOfMonth(date);
+    value.setMonth(value.getMonth() + amount);
+    return value;
+  }
+
   function addDays(date, amount) {
     const value = new Date(date);
     value.setDate(value.getDate() + amount);
@@ -1577,6 +1649,10 @@
 
   function formatShortDate(date) {
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toLowerCase();
+  }
+
+  function monthLabel(date) {
+    return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }).toLowerCase();
   }
 
   function dueLabel(date) {

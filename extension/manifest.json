@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ELMS Local",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A read-only, simplified wrapper for UMD ELMS Canvas.",
   "action": {
     "default_title": "Open ELMS Local"

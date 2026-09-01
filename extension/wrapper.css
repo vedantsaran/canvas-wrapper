@@ -87,7 +87,7 @@ html.elms-local-active body {
 
 .elms-main { width: min(100%, 42rem); min-height: calc(100vh - 3rem); margin: 0 auto; padding: 2.15rem 0 6rem; }
 #elms-local-root[data-view='schedule'] .elms-main,
-#elms-local-root[data-view='course'] .elms-main { width: min(100%, calc(100vw - 20rem), 60rem); }
+#elms-local-root[data-view='course'] .elms-main { width: min(100%, calc(100vw - 30rem), 60rem); }
 #elms-local-root[data-view='schedule'] .elms-side-rail,
 #elms-local-root[data-view='course'] .elms-side-rail { left: 1rem; }
 #elms-local-root[data-view='schedule'] .elms-status-rail,
@@ -309,9 +309,27 @@ html.elms-local-active body {
 .border-gold { border-top-color: var(--gold); }
 .border-green { border-top-color: var(--green); }
 
-.elms-status-rail { position: fixed; top: 4.8rem; right: max(1rem, calc(50% - 21rem - clamp(2.5rem, 6vw, 5.5rem) - 7.2rem)); width: 7.2rem; }
-.elms-status-rail p { margin: 0 0 .12rem; color: var(--muted); font-size: .72rem; }
-.elms-status-rail button { display: block; margin-top: .45rem; padding: 0; border: 0; background: none; color: var(--blue); font-size: .76rem; font-weight: 700; }
+.elms-status-rail { position: fixed; top: 4.8rem; right: max(1rem, calc(50% - 21rem - clamp(2.5rem, 6vw, 5.5rem) - 13.25rem)); width: 13.25rem; }
+.elms-status-copy { min-height: 1rem; }
+.elms-status-copy p { margin: 0 0 .12rem; color: var(--muted); font-size: .72rem; }
+.elms-status-copy button { display: block; margin-top: .15rem; padding: 0; border: 0; background: none; color: var(--blue); font-size: .76rem; font-weight: 700; }
+
+.elms-mini-calendar { margin-top: 1.35rem; padding-top: .8rem; border-top: 1px solid var(--rule); }
+.elms-mini-calendar > header { display: grid; grid-template-columns: 1rem minmax(0, 1fr) 1rem; align-items: center; gap: .35rem; margin-bottom: .55rem; }
+.elms-mini-calendar > header strong { overflow: hidden; font-size: .74rem; line-height: 1.2; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.elms-mini-calendar > header button { display: grid; place-items: center; width: 1rem; height: 1rem; margin: 0; padding: 0; border: 0; background: none; color: var(--muted); font-size: .72rem; line-height: 1; }
+.elms-mini-weekdays, .elms-mini-month { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.elms-mini-weekdays { margin-bottom: .18rem; color: var(--faint); font-size: .55rem; line-height: 1; text-align: center; text-transform: uppercase; }
+.elms-mini-day { min-width: 0; min-height: 2.05rem; padding: .17rem .14rem .2rem; border-top: 1px solid var(--rule); border-left: 1px solid var(--rule); }
+.elms-mini-day:nth-child(7n) { border-right: 1px solid var(--rule); }
+.elms-mini-day:nth-last-child(-n + 7) { border-bottom: 1px solid var(--rule); }
+.elms-mini-day > span { display: block; color: var(--muted); font-size: .55rem; line-height: 1; }
+.elms-mini-day.is-outside { opacity: .32; }
+.elms-mini-day.is-today > span { color: var(--blue); font-weight: 700; }
+.elms-mini-assignments { display: grid; gap: .12rem; margin-top: .22rem; }
+.elms-mini-assignments a { display: block; width: 100%; min-height: .28rem; border-radius: 1px; background: currentColor; opacity: .92; }
+.elms-mini-assignments a:hover { opacity: 1; outline: 1px solid currentColor; outline-offset: 1px; }
+.elms-mini-assignments a.is-complete { opacity: .3; }
 .elms-gate { display: grid; min-height: calc(100vh - 3rem); place-items: center; }
 .elms-gate-inner { width: min(100%, 20rem); }
 .elms-gate h1 { margin: 0 0 1.4rem; font-size: 1.45rem; }
@@ -328,8 +346,10 @@ html.elms-local-active body {
   .elms-nav button.is-active::before { display: none; }
   .elms-main { min-height: auto; padding-top: 1.6rem; padding-bottom: 3rem; }
   .elms-status-rail { display: flex; align-items: baseline; gap: .8rem; padding-bottom: 2rem; }
-  .elms-status-rail p, .elms-status-rail button { margin: 0; }
-  .elms-status-rail p:nth-child(2) { margin-right: auto; }
+  .elms-mini-calendar { display: none; }
+  .elms-status-copy { display: flex; align-items: baseline; gap: .8rem; width: 100%; margin: 0; padding: 0; border: 0; }
+  .elms-status-copy p, .elms-status-copy button { margin: 0; }
+  .elms-status-copy p:nth-child(2) { margin-right: auto; }
 }
 
 @media (max-width: 720px) {
