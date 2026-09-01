@@ -57,6 +57,7 @@ html.elms-local-active body {
 }
 
 :where(#elms-local-root) button { cursor: pointer; }
+:where(#elms-local-root) button:disabled { cursor: default; opacity: .45; }
 :where(#elms-local-root) a { color: inherit; text-decoration: none; }
 :where(#elms-local-root) a:hover { text-decoration: underline; text-underline-offset: .15em; }
 :where(#elms-local-root) button:focus-visible,
@@ -115,6 +116,7 @@ html.elms-local-active body {
 .elms-task { position: relative; display: grid; grid-template-columns: 1.15rem minmax(0, 1fr) auto auto; align-items: center; gap: .8rem; padding: .85rem 0; border-bottom: 1px solid var(--rule); }
 .elms-task input { position: absolute; opacity: 0; pointer-events: none; }
 .elms-check { width: .8rem; height: .8rem; border: 1px solid var(--muted); border-radius: 50%; cursor: pointer; }
+.elms-task input:focus-visible + .elms-check { outline: 2px solid var(--text); outline-offset: 3px; }
 .elms-task input:checked + .elms-check { border-color: var(--green); background: var(--green); box-shadow: inset 0 0 0 2px var(--bg); }
 .elms-task.is-complete .elms-task-copy,
 .elms-task.is-complete > time { opacity: .42; text-decoration: line-through; }
@@ -317,6 +319,7 @@ html.elms-local-active body {
   .elms-page-heading, .elms-page-meta { align-items: flex-start; flex-direction: column; }
   .elms-page-meta { gap: .25rem; text-align: left; }
   .elms-task { grid-template-columns: 1.05rem minmax(0, 1fr); }
+  .elms-task-copy a, .elms-exam-copy > strong, .elms-course > span:nth-child(2), .elms-course-assignment strong { overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
   .elms-task > time { grid-column: 2; margin-top: -.5rem; }
   .elms-dismiss { grid-column: 2; justify-self: start; margin-top: -.55rem; }
   .elms-week-grid { grid-template-columns: repeat(7, 7.4rem); padding-bottom: .4rem; }

@@ -21,7 +21,6 @@
     theme: readStorage(STORAGE.theme, 'dark'),
     data: null,
     warnings: [],
-    updatedAt: null,
     syncing: false,
     weekStart: startOfWeek(new Date()),
     courseFilter: 'all',
@@ -65,6 +64,12 @@
       ]);
 
       const courses = normalizeCourses(rawCourses);
+      const activeCourseIds = new Set(courses.map((course) => course.id));
+      const hiddenCourses = new Set([...state.hiddenCourses].filter((courseId) => activeCourseIds.has(courseId)));
+      if (hiddenCourses.size !== state.hiddenCourses.size) {
+        state.hiddenCourses = hiddenCourses;
+        writeJsonStorage(STORAGE.hiddenCourses, [...hiddenCourses]);
+      }
       const start = addDays(startOfDay(new Date()), -30).toISOString();
       const end = addDays(startOfDay(new Date()), 180).toISOString();
       const warnings = [];
@@ -83,16 +88,33 @@
       });
 
       const [plannerItems, calendarEvents] = await Promise.all([plannerPromise, calendarPromise]);
+      const tasks = normalizeTasks(plannerItems, courses);
+      const taskIds = new Set(tasks.map((task) => task.id));
+      const dismissed = new Set([...state.dismissed].filter((taskId) => taskIds.has(taskId)));
+      if (dismissed.size !== state.dismissed.size) {
+        state.dismissed = dismissed;
+        writeJsonStorage(STORAGE.dismissed, [...dismissed]);
+      }
+
+      const refreshCourseId = state.view === 'course' ? state.selectedCourseId : null;
+      state.courseCache.clear();
 
       state.data = {
         profile: normalizeProfile(profile),
         courses,
-        tasks: normalizeTasks(plannerItems, courses),
+        tasks,
         events: normalizeEvents(calendarEvents, courses),
       };
       state.warnings = warnings;
-      state.updatedAt = new Date();
       state.syncing = false;
+      if (refreshCourseId && activeCourseIds.has(refreshCourseId) && !state.hiddenCourses.has(refreshCourseId)) {
+        await openCourse(refreshCourseId, { preserveTab: true });
+        return;
+      }
+      if (refreshCourseId) {
+        state.selectedCourseId = null;
+        state.view = 'classes';
+      }
       renderShell();
     } catch (error) {
       state.syncing = false;
@@ -129,12 +151,12 @@
     return responses.flat();
   }
 
-  async function openCourse(courseId) {
+  async function openCourse(courseId, { preserveTab = false } = {}) {
     const course = state.data.courses.find((item) => item.id === courseId);
     if (!course || state.hiddenCourses.has(courseId)) return;
 
     state.selectedCourseId = courseId;
-    state.courseTab = 'home';
+    if (!preserveTab) state.courseTab = 'home';
     state.view = 'course';
     state.courseError = '';
 
@@ -247,15 +269,19 @@
   function normalizeCourses(rawCourses) {
     return rawCourses
       .filter((course) => course && course.id && !course.access_restricted_by_date)
-      .map((course, index) => ({
-        id: String(course.id),
-        code: cleanText(course.course_code || course.name || `Course ${index + 1}`),
-        name: cleanText(course.name || course.course_code || `Course ${index + 1}`),
-        term: cleanText(course.term?.name || ''),
-        url: `/courses/${course.id}`,
-        imageUrl: safeImageUrl(course.image_download_url || ''),
-        tone: TONES[index % TONES.length],
-      }))
+      .map((course, index) => {
+        const code = cleanText(course.course_code || course.name || `Course ${index + 1}`);
+        const term = cleanText(course.term?.name || '');
+        return {
+          id: String(course.id),
+          code,
+          name: courseDisplayName(course.name || course.course_code || `Course ${index + 1}`, code, term),
+          term,
+          url: `/courses/${course.id}`,
+          imageUrl: safeImageUrl(course.image_download_url || ''),
+          tone: TONES[index % TONES.length],
+        };
+      })
       .sort((a, b) => a.code.localeCompare(b.code));
   }
 
@@ -634,7 +660,10 @@
     const upcoming = getVisibleTasks()
       .filter((task) => task.courseId === course.id && !isTaskComplete(task))
       .slice(0, 5);
-    const grade = currentCourseGrade(detail.enrollment);
+    const hasGradedWork = detail.assignments.some((assignment) => (
+      assignment.submission?.workflow_state === 'graded' || assignment.submission?.score != null
+    ));
+    const grade = hasGradedWork ? currentCourseGrade(detail.enrollment) : '';
 
     return `
       ${detail.heroUrl ? `<div class="elms-course-hero"><img src="${esc(detail.heroUrl)}" alt="" loading="eager"></div>` : ''}
@@ -736,8 +765,8 @@
   }
 
   function renderCourseGrades(detail) {
-    const grade = currentCourseGrade(detail.enrollment);
     const graded = detail.assignments.filter((assignment) => assignment.submission?.workflow_state === 'graded');
+    const grade = graded.length ? currentCourseGrade(detail.enrollment) : '';
 
     return `
       ${grade ? `<div class="elms-grade-summary"><span>current grade</span><strong>${esc(grade)}</strong></div>` : ''}
@@ -1232,6 +1261,10 @@
       const copy = copyNode(node);
       if (copy) output.append(copy);
     });
+    output.querySelectorAll('h1, h2, h3, h4, h5, h6, p').forEach((element) => {
+      const hasMedia = element.querySelector('audio, figure, iframe, img, table, video');
+      if (!cleanText(element.textContent || '') && !hasMedia) element.remove();
+    });
     return output.innerHTML;
   }
 
@@ -1314,6 +1347,24 @@
     const text = String(value || '');
     const match = text.match(/(?:course_)?(\d+)/);
     return match ? match[1] : text;
+  }
+
+  function courseDisplayName(value, code, term) {
+    let name = cleanText(value || code);
+    const colon = name.indexOf(':');
+    const courseKey = code.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const prefixKey = name.slice(0, colon).toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (colon > 0 && courseKey && prefixKey.includes(courseKey)) {
+      name = name.slice(colon + 1).trim();
+    }
+
+    if (term) {
+      const termIndex = name.toLowerCase().lastIndexOf(term.toLowerCase());
+      if (termIndex > 0 && /[-–—]\s*$/.test(name.slice(0, termIndex))) {
+        name = name.slice(0, termIndex).replace(/[-–—]\s*$/, '').trim();
+      }
+    }
+    return cleanText(name || code);
   }
 
   function cleanText(value) {
