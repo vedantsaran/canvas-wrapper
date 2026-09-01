@@ -509,7 +509,7 @@
                   <span class="elms-dot tone-${meeting.tone}"></span>
                   <span>
                     <strong>${esc(meeting.courseName)}</strong>
-                    ${meeting.location ? `<small>${esc(meeting.location)}</small>` : ''}
+                    ${meeting.label || meeting.location ? `<small>${esc([meeting.label, meeting.location].filter(Boolean).join(' · '))}</small>` : ''}
                   </span>
                   <button type="button" data-remove-meeting="${esc(meeting.id)}" aria-label="Remove ${esc(meeting.courseName)} on ${esc(longWeekday(day))}">remove</button>
                 </div>
@@ -539,6 +539,10 @@
           <label>
             ends
             <input type="time" name="end" required>
+          </label>
+          <label>
+            type
+            <input type="text" name="label" maxlength="30" autocomplete="off" placeholder="lecture, discussion…">
           </label>
           <label class="elms-location">
             location
@@ -613,7 +617,7 @@
   function meetingEventForDate(meeting, day) {
     return {
       id: meeting.id,
-      title: meeting.courseName,
+      title: [meeting.courseName, meeting.label].filter(Boolean).join(' · '),
       courseId: meeting.courseId,
       courseName: 'class',
       location: meeting.location,
@@ -1172,6 +1176,7 @@
     }
 
     const location = cleanText(formData.get('location') || '').slice(0, 80);
+    const label = cleanText(formData.get('label') || '').slice(0, 30);
     const additions = days
       .filter((day) => !state.meetings.some((meeting) => (
         meeting.courseId === course.id && Number(meeting.day) === day && meeting.start === start && meeting.end === end
@@ -1184,6 +1189,7 @@
         day,
         start,
         end,
+        label,
         location,
       }));
 

@@ -185,7 +185,7 @@ html.elms-local-active body {
 .elms-calendar-entry.is-deadline { background: color-mix(in srgb, var(--pink) 7%, transparent); }
 
 .elms-meeting-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .8rem 1rem; margin-top: 1rem; padding: 1rem; border: 1px solid var(--rule-strong); }
-.elms-meeting-fields { display: grid; grid-column: 1 / -1; grid-template-columns: 1.35fr .65fr .65fr 1fr; gap: .65rem; }
+.elms-meeting-fields { display: grid; grid-column: 1 / -1; grid-template-columns: 1.3fr .6fr .6fr .8fr 1fr; gap: .65rem; }
 .elms-meeting-form label { display: grid; align-content: start; gap: .2rem; color: var(--muted); font-size: .72rem; }
 .elms-meeting-form select, .elms-meeting-form input[type='time'], .elms-meeting-form input[type='text'] { width: 100%; }
 .elms-meeting-days { min-width: 0; margin: 0; padding: 0; border: 0; }
