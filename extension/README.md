@@ -18,7 +18,7 @@ Click the extension icon. If Canvas asks you to sign in, complete the normal UMD
 
 - **Today:** upcoming work, today's calendar events, and the next detected exam.
 - **To-do:** Canvas planner assignments, with class filtering, a local checklist, and persistent hiding for overdue work.
-- **Schedule:** Canvas calendar events plus optional recurring class times you enter locally.
+- **Schedule:** a recurring multi-day class timetable, Canvas calendar events, and outstanding assignment deadlines in one weekly view.
 - **Exams:** upcoming items whose titles contain exam, examination, midterm, final, quiz, or test.
 - **Classes:** active Canvas courses that open into redesigned course pages.
 - **Course pages:** sanitized rich home content with its original images, responsive video and document embeds, plus Modules, Assignments, Announcements, and Grades.

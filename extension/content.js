@@ -408,7 +408,13 @@
       .filter((task) => !isTaskComplete(task))
       .filter((task) => task.dueAt >= addDays(startOfDay(now), -14))
       .slice(0, 5);
-    const todayEvents = getVisibleEvents().filter((event) => sameDay(event.startsAt, now));
+    const todayMeetings = getVisibleMeetings()
+      .filter((meeting) => Number(meeting.day) === now.getDay())
+      .map((meeting) => meetingEventForDate(meeting, now));
+    const todayEvents = [
+      ...getVisibleEvents().filter((event) => sameDay(event.startsAt, now)),
+      ...todayMeetings,
+    ].sort((left, right) => left.startsAt - right.startsAt);
     const nextExam = getExams().find((exam) => exam.date >= startOfDay(now));
 
     return `
@@ -461,66 +467,94 @@
   function renderSchedule() {
     const days = Array.from({ length: 7 }, (_, index) => addDays(state.weekStart, index));
     const courses = getVisibleCourses();
+    const meetings = getVisibleMeetings().sort((left, right) => (
+      meetingDayOrder(left.day) - meetingDayOrder(right.day) || left.start.localeCompare(right.start)
+    ));
 
     return `
-      ${pageHeading('schedule', weekRangeLabel(state.weekStart), 'edit weekly classes', 'edit-schedule')}
+      ${pageHeading('schedule', weekRangeLabel(state.weekStart))}
+      ${renderClassTimes(meetings)}
+      ${state.editingSchedule ? renderMeetingEditor(courses) : ''}
       <div class="elms-week-controls">
         <button type="button" data-week="previous">← previous</button>
         <button type="button" data-week="today">this week</button>
         <button type="button" data-week="next">next →</button>
       </div>
-      ${state.editingSchedule ? renderMeetingEditor(courses) : ''}
       <div class="elms-week-grid" aria-label="Weekly calendar">
         ${days.map((day) => renderScheduleDay(day)).join('')}
       </div>
     `;
   }
 
+  function renderClassTimes(meetings) {
+    const days = [1, 2, 3, 4, 5, 6, 0];
+    return `
+      <section class="elms-class-times">
+        <header>
+          <div>
+            <h2>class times</h2>
+            <span>${meetings.length ? `${meetings.length} weekly ${meetings.length === 1 ? 'meeting' : 'meetings'}` : 'none added'}</span>
+          </div>
+          <button type="button" data-edit-schedule>${state.editingSchedule ? 'close' : meetings.length ? 'edit' : 'add class times'}</button>
+        </header>
+        ${meetings.length ? `<div class="elms-class-days">${days.map((day) => {
+          const dayMeetings = meetings.filter((meeting) => Number(meeting.day) === day);
+          if (!dayMeetings.length) return '';
+          return `
+            <section class="elms-class-day">
+              <h3>${esc(longWeekday(day))}</h3>
+              <div>${dayMeetings.map((meeting) => `
+                <div class="elms-class-time-row">
+                  <time>${esc(storedTimeRange(meeting.start, meeting.end))}</time>
+                  <span class="elms-dot tone-${meeting.tone}"></span>
+                  <span>
+                    <strong>${esc(meeting.courseName)}</strong>
+                    ${meeting.location ? `<small>${esc(meeting.location)}</small>` : ''}
+                  </span>
+                  <button type="button" data-remove-meeting="${esc(meeting.id)}" aria-label="Remove ${esc(meeting.courseName)} on ${esc(longWeekday(day))}">remove</button>
+                </div>
+              `).join('')}</div>
+            </section>
+          `;
+        }).join('')}</div>` : '<p class="elms-empty">Add your meeting days and times once; they repeat every week.</p>'}
+      </section>
+    `;
+  }
+
   function renderMeetingEditor(courses) {
-    const meetings = getVisibleMeetings();
     return `
       <form class="elms-meeting-form">
-        <label>
-          class
-          <select name="courseId" required>
-            <option value="">select</option>
-            ${courses.map((course) => `<option value="${esc(course.id)}">${esc(course.code)}</option>`).join('')}
-          </select>
-        </label>
-        <label>
-          day
-          <select name="day" required>
-            <option value="1">monday</option>
-            <option value="2">tuesday</option>
-            <option value="3">wednesday</option>
-            <option value="4">thursday</option>
-            <option value="5">friday</option>
-            <option value="6">saturday</option>
-            <option value="0">sunday</option>
-          </select>
-        </label>
-        <label>
-          starts
-          <input type="time" name="start" required>
-        </label>
-        <label>
-          ends
-          <input type="time" name="end" required>
-        </label>
-        <label class="elms-location">
-          location (optional)
-          <input type="text" name="location" maxlength="80" autocomplete="off">
-        </label>
-        <button type="submit">add class</button>
+        <div class="elms-meeting-fields">
+          <label class="elms-meeting-course">
+            class
+            <select name="courseId" required>
+              <option value="">select</option>
+              ${courses.map((course) => `<option value="${esc(course.id)}">${esc(course.code)} · ${esc(course.name)}</option>`).join('')}
+            </select>
+          </label>
+          <label>
+            starts
+            <input type="time" name="start" required>
+          </label>
+          <label>
+            ends
+            <input type="time" name="end" required>
+          </label>
+          <label class="elms-location">
+            location
+            <input type="text" name="location" maxlength="80" autocomplete="off" placeholder="optional">
+          </label>
+        </div>
+        <fieldset class="elms-meeting-days">
+          <legend>meets on</legend>
+          <div>
+            ${[[1, 'mon'], [2, 'tue'], [3, 'wed'], [4, 'thu'], [5, 'fri'], [6, 'sat'], [0, 'sun']].map(([day, label]) => `
+              <label><input type="checkbox" name="days" value="${day}"> ${label}</label>
+            `).join('')}
+          </div>
+        </fieldset>
+        <button type="submit">add to schedule</button>
       </form>
-      <div class="elms-manual-list">
-        ${meetings.length ? meetings.map((meeting) => `
-          <span>
-            ${esc(meeting.courseName)} · ${shortWeekday(Number(meeting.day))} ${esc(meeting.start)}
-            <button type="button" data-remove-meeting="${esc(meeting.id)}" aria-label="Remove ${esc(meeting.courseName)}">remove</button>
-          </span>
-        `).join('') : '<span>no recurring classes added</span>'}
-      </div>
     `;
   }
 
@@ -541,19 +575,27 @@
 
     const meetings = getVisibleMeetings()
       .filter((meeting) => Number(meeting.day) === day.getDay())
-      .map((meeting) => ({
-        id: meeting.id,
-        title: meeting.courseName,
-        courseName: 'weekly class',
-        location: meeting.location,
-        date: timeOnDate(day, meeting.start),
-        end: timeOnDate(day, meeting.end),
+      .map((meeting) => {
+        const event = meetingEventForDate(meeting, day);
+        return { ...event, date: event.startsAt, end: event.endsAt, kind: 'class' };
+      });
+
+    const deadlines = getVisibleTasks()
+      .filter((task) => !isTaskComplete(task) && sameDay(task.dueAt, day))
+      .map((task) => ({
+        id: task.id,
+        title: task.title,
+        courseName: `${task.courseName} · due`,
+        location: '',
+        date: task.dueAt,
+        end: task.dueAt,
         allDay: false,
-        tone: meeting.tone,
-        url: '#',
+        tone: task.tone,
+        url: task.url,
+        kind: 'deadline',
       }));
 
-    const entries = [...events, ...meetings].sort((a, b) => a.date - b.date);
+    const entries = [...events, ...meetings, ...deadlines].sort((a, b) => a.date - b.date);
 
     return `
       <section class="elms-day ${sameDay(day, new Date()) ? 'is-today' : ''}">
@@ -568,6 +610,21 @@
     `;
   }
 
+  function meetingEventForDate(meeting, day) {
+    return {
+      id: meeting.id,
+      title: meeting.courseName,
+      courseId: meeting.courseId,
+      courseName: 'class',
+      location: meeting.location,
+      startsAt: timeOnDate(day, meeting.start),
+      endsAt: timeOnDate(day, meeting.end),
+      allDay: false,
+      tone: meeting.tone,
+      url: '#',
+    };
+  }
+
   function renderCalendarEntry(entry) {
     const content = `
       <time>${entry.allDay ? 'all day' : formatTimeRange(entry.date, entry.end)}</time>
@@ -576,9 +633,9 @@
     `;
 
     if (entry.url && entry.url !== '#') {
-      return `<a class="elms-calendar-entry border-${entry.tone}" href="${esc(entry.url)}">${content}</a>`;
+      return `<a class="elms-calendar-entry ${entry.kind ? `is-${entry.kind}` : ''} border-${entry.tone}" href="${esc(entry.url)}">${content}</a>`;
     }
-    return `<div class="elms-calendar-entry border-${entry.tone}">${content}</div>`;
+    return `<div class="elms-calendar-entry ${entry.kind ? `is-${entry.kind}` : ''} border-${entry.tone}">${content}</div>`;
   }
 
   function renderExams() {
@@ -801,14 +858,14 @@
   }
 
   function renderEventList(events) {
-    if (!events.length) return emptyRow('No Canvas events today.');
+    if (!events.length) return emptyRow('Nothing scheduled today.');
 
     return `<ul class="elms-event-list">${events.map((event) => `
       <li>
-        <time datetime="${event.startsAt.toISOString()}">${event.allDay ? 'all day' : formatTime(event.startsAt)}</time>
+        <time datetime="${event.startsAt.toISOString()}">${event.allDay ? 'all day' : formatTimeRange(event.startsAt, event.endsAt)}</time>
         <span class="elms-dot tone-${event.tone}"></span>
         <span>
-          <a href="${esc(event.url)}">${esc(event.title)}</a>
+          ${event.url && event.url !== '#' ? `<a href="${esc(event.url)}">${esc(event.title)}</a>` : `<strong>${esc(event.title)}</strong>`}
           <small>${esc([event.courseName, event.location].filter(Boolean).join(' · '))}</small>
         </span>
       </li>
@@ -1057,6 +1114,17 @@
   }
 
   function handleChange(event) {
+    if (event.target.matches('.elms-meeting-form [name="days"]')) {
+      event.target.closest('.elms-meeting-form').querySelectorAll('[name="days"]').forEach((input) => input.setCustomValidity(''));
+      return;
+    }
+
+    if (event.target.matches('.elms-meeting-form [name="start"], .elms-meeting-form [name="end"]')) {
+      const endInput = event.target.closest('.elms-meeting-form').querySelector('[name="end"]');
+      endInput?.setCustomValidity('');
+      return;
+    }
+
     if (event.target.matches('[data-task-id]')) {
       const id = event.target.dataset.taskId;
       if (event.target.checked) state.completed.add(id);
@@ -1086,18 +1154,40 @@
     const course = state.data.courses.find((item) => item.id === formData.get('courseId'));
     const start = String(formData.get('start') || '');
     const end = String(formData.get('end') || '');
+    const days = [...new Set(formData.getAll('days').map(Number).filter((day) => Number.isInteger(day) && day >= 0 && day <= 6))];
     if (!course || !start || !end) return;
 
-    state.meetings.push({
-      id: globalThis.crypto?.randomUUID?.() || `meeting-${Date.now()}`,
-      courseId: course.id,
-      courseName: course.code,
-      tone: course.tone,
-      day: Number(formData.get('day')),
-      start,
-      end,
-      location: cleanText(formData.get('location') || '').slice(0, 80),
-    });
+    if (!days.length) {
+      const firstDay = event.target.querySelector('[name="days"]');
+      firstDay?.setCustomValidity('Choose at least one meeting day.');
+      firstDay?.reportValidity();
+      return;
+    }
+
+    if (end <= start) {
+      const endInput = event.target.querySelector('[name="end"]');
+      endInput?.setCustomValidity('End time must be after the start time.');
+      endInput?.reportValidity();
+      return;
+    }
+
+    const location = cleanText(formData.get('location') || '').slice(0, 80);
+    const additions = days
+      .filter((day) => !state.meetings.some((meeting) => (
+        meeting.courseId === course.id && Number(meeting.day) === day && meeting.start === start && meeting.end === end
+      )))
+      .map((day, index) => ({
+        id: globalThis.crypto?.randomUUID?.() || `meeting-${Date.now()}-${day}-${index}`,
+        courseId: course.id,
+        courseName: course.code,
+        tone: course.tone,
+        day,
+        start,
+        end,
+        location,
+      }));
+
+    state.meetings.push(...additions);
     writeJsonStorage(STORAGE.meetings, state.meetings);
     renderShell();
   }
@@ -1462,6 +1552,11 @@
     return `${formatTime(start)}–${formatTime(end)}`;
   }
 
+  function storedTimeRange(start, end) {
+    const reference = new Date(2026, 0, 5);
+    return formatTimeRange(timeOnDate(reference, start), timeOnDate(reference, end));
+  }
+
   function sameMinute(left, right) {
     return left.getFullYear() === right.getFullYear() &&
       left.getMonth() === right.getMonth() &&
@@ -1505,8 +1600,13 @@
     return `${formatShortDate(start)}–${formatShortDate(end)}`;
   }
 
-  function shortWeekday(day) {
-    return ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][day] || '';
+  function longWeekday(day) {
+    return ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][day] || '';
+  }
+
+  function meetingDayOrder(day) {
+    const value = Number(day);
+    return value === 0 ? 7 : value;
   }
 
   class CanvasAuthError extends Error {}
