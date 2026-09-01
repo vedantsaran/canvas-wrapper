@@ -22,6 +22,7 @@ Click the extension icon. If Canvas asks you to sign in, complete the normal UMD
 - **Exams:** upcoming items whose titles contain exam, examination, midterm, final, quiz, or test.
 - **Classes:** active Canvas courses that open into redesigned course pages.
 - **Course pages:** sanitized rich home content with its original images, plus Modules, Assignments, Announcements, and Grades.
+- **Hidden classes:** hiding a class persistently removes that class, its assignments, announcements, exams, calendar events, and recurring meetings from the wrapper until restored.
 
 The extension never creates fake courses or assignments. Empty Canvas data produces an empty state.
 
@@ -29,7 +30,7 @@ The extension never creates fake courses or assignments. Empty Canvas data produ
 
 The manifest grants access only to `https://umd.instructure.com/*`. The data layer sends only `GET` requests to Canvas API routes on that same origin. It has no analytics, remote scripts, backend, or password/token storage. Course-page HTML is sanitized before display; scripts, forms, iframes, embeds, and event attributes are discarded. Externally hosted images placed in a course page may still load from their original host.
 
-Manual weekly meetings, theme choice, local task checks, and hidden overdue assignments are stored in `localStorage` for `umd.instructure.com`. Submitted/graded status remains read-only from Canvas. Hidden assignments can be restored from the To-do view.
+Manual weekly meetings, theme choice, local task checks, hidden overdue assignments, and hidden classes are stored in `localStorage` for `umd.instructure.com`. Submitted/graded status remains read-only from Canvas. Hidden assignments and classes have separate restore controls in their respective views.
 
 The normal Canvas interface is untouched. The overhaul activates only at `https://umd.instructure.com/?elms_local=1`; choose **canvas ↗** to return to the original interface.
 

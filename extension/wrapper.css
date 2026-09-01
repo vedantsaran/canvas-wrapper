@@ -182,16 +182,21 @@ html.elms-local-active body {
 .elms-countdown { color: var(--muted); font-size: .72rem; text-align: right; }
 
 .elms-course-list { display: grid; }
-.elms-course { display: grid; width: 100%; grid-template-columns: 5.5rem minmax(0, 1fr) auto; gap: .65rem; align-items: baseline; padding: .72rem 0; border: 0; border-bottom: 1px solid var(--rule); background: none; color: var(--text); text-align: left; }
+.elms-course-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 1rem; border-bottom: 1px solid var(--rule); }
+.elms-course { display: grid; width: 100%; grid-template-columns: 5.5rem minmax(0, 1fr) auto; gap: .65rem; align-items: baseline; padding: .72rem 0; border: 0; background: none; color: var(--text); text-align: left; }
 .elms-course > span:nth-child(2) { overflow: hidden; font-size: .94rem; text-overflow: ellipsis; white-space: nowrap; }
 .elms-course > span:last-child { color: var(--muted); }
 .elms-course:hover > span:nth-child(2) { text-decoration: underline; text-underline-offset: .15em; }
+.elms-course-hide { padding: 0; border: 0; background: none; color: var(--pink); font-size: .7rem; opacity: .72; }
+.elms-course-hide:hover { opacity: 1; text-decoration: underline; text-underline-offset: .15em; }
 
 .elms-course-shell { padding-top: 2.7rem; }
 .elms-course-back { padding: 0; border: 0; background: none; color: var(--muted); font-size: .78rem; }
 .elms-course-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin-top: 1.5rem; }
 .elms-course-header h1 { max-width: 48rem; margin: .3rem 0 0; font-size: clamp(1.8rem, 4vw, 3.2rem); font-weight: 400; line-height: 1.02; letter-spacing: -.035em; }
-.elms-course-header > a { flex: none; color: var(--pink); font-size: .8rem; }
+.elms-course-actions { display: flex; flex: none; align-items: baseline; gap: .9rem; }
+.elms-course-actions a, .elms-course-actions button { padding: 0; border: 0; background: none; color: var(--pink); font-size: .8rem; }
+.elms-course-actions button { color: var(--muted); }
 .elms-course-kicker { margin: 0; font-size: .72rem; font-weight: 700; letter-spacing: .045em; text-transform: uppercase; }
 .elms-course-tabs { display: flex; gap: 1.3rem; margin-top: 2.35rem; overflow-x: auto; border-bottom: 1px solid var(--rule); }
 .elms-course-tabs button { position: relative; flex: none; padding: 0 0 .52rem; border: 0; background: none; color: var(--muted); font-size: .82rem; }

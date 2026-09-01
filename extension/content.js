@@ -10,6 +10,7 @@
     theme: 'elms-local:theme',
     completed: 'elms-local:completed',
     dismissed: 'elms-local:dismissed',
+    hiddenCourses: 'elms-local:hidden-courses',
     meetings: 'elms-local:meetings',
   };
   const TONES = ['blue', 'pink', 'purple', 'gold', 'green'];
@@ -33,6 +34,7 @@
     courseError: '',
     completed: new Set(readJsonStorage(STORAGE.completed, [])),
     dismissed: new Set(readJsonStorage(STORAGE.dismissed, [])),
+    hiddenCourses: new Set(readJsonStorage(STORAGE.hiddenCourses, [])),
     meetings: readJsonStorage(STORAGE.meetings, []),
   };
 
@@ -74,7 +76,8 @@
         return [];
       });
 
-      const calendarPromise = fetchCalendarEvents(courses, start, end).catch(() => {
+      const calendarCourses = courses.filter((course) => !state.hiddenCourses.has(course.id));
+      const calendarPromise = fetchCalendarEvents(calendarCourses, start, end).catch(() => {
         warnings.push('calendar unavailable');
         return [];
       });
@@ -128,7 +131,7 @@
 
   async function openCourse(courseId) {
     const course = state.data.courses.find((item) => item.id === courseId);
-    if (!course) return;
+    if (!course || state.hiddenCourses.has(courseId)) return;
 
     state.selectedCourseId = courseId;
     state.courseTab = 'home';
@@ -379,7 +382,7 @@
       .filter((task) => !isTaskComplete(task))
       .filter((task) => task.dueAt >= addDays(startOfDay(now), -14))
       .slice(0, 5);
-    const todayEvents = state.data.events.filter((event) => sameDay(event.startsAt, now));
+    const todayEvents = getVisibleEvents().filter((event) => sameDay(event.startsAt, now));
     const nextExam = getExams().find((exam) => exam.date >= startOfDay(now));
 
     return `
@@ -400,7 +403,7 @@
   }
 
   function renderTodo() {
-    const courses = state.data.courses;
+    const courses = getVisibleCourses();
     const tasks = getVisibleTasks().filter((task) => {
       const courseMatches = state.courseFilter === 'all' || task.courseId === state.courseFilter;
       const completionMatches = state.showCompleted || !isTaskComplete(task);
@@ -431,7 +434,7 @@
 
   function renderSchedule() {
     const days = Array.from({ length: 7 }, (_, index) => addDays(state.weekStart, index));
-    const courses = state.data.courses;
+    const courses = getVisibleCourses();
 
     return `
       ${pageHeading('schedule', weekRangeLabel(state.weekStart), 'edit weekly classes', 'edit-schedule')}
@@ -484,7 +487,7 @@
         <button type="submit">add class</button>
       </form>
       <div class="elms-manual-list">
-        ${state.meetings.length ? state.meetings.map((meeting) => `
+        ${getVisibleMeetings().length ? getVisibleMeetings().map((meeting) => `
           <span>
             ${esc(meeting.courseName)} · ${shortWeekday(Number(meeting.day))} ${esc(meeting.start)}
             <button type="button" data-remove-meeting="${esc(meeting.id)}" aria-label="Remove ${esc(meeting.courseName)}">remove</button>
@@ -495,7 +498,7 @@
   }
 
   function renderScheduleDay(day) {
-    const events = state.data.events
+    const events = getVisibleEvents()
       .filter((event) => sameDay(event.startsAt, day))
       .map((event) => ({
         id: event.id,
@@ -509,7 +512,7 @@
         url: event.url,
       }));
 
-    const meetings = state.meetings
+    const meetings = getVisibleMeetings()
       .filter((meeting) => Number(meeting.day) === day.getDay())
       .map((meeting) => ({
         id: meeting.id,
@@ -562,24 +565,28 @@
   }
 
   function renderClasses() {
-    const courses = state.data.courses;
+    const courses = getVisibleCourses();
+    const hiddenCount = state.data.courses.filter((course) => state.hiddenCourses.has(course.id)).length;
     return `
-      ${pageHeading('classes', `${courses.length} active`)}
+      ${pageHeading('classes', `${courses.length} active`, hiddenCount ? `restore ${hiddenCount} hidden` : '', 'restore-courses')}
       <section class="elms-section elms-flush">
         ${courses.length ? `<div class="elms-course-list">${courses.map((course) => `
-          <button class="elms-course" type="button" data-course-open="${esc(course.id)}">
-            <strong class="tone-${course.tone}">${esc(course.code)}</strong>
-            <span>${esc(course.name)}</span>
-            <span>${esc(course.term)}</span>
-          </button>
-        `).join('')}</div>` : emptyRow('Canvas returned no active classes.')}
+          <div class="elms-course-row">
+            <button class="elms-course" type="button" data-course-open="${esc(course.id)}">
+              <strong class="tone-${course.tone}">${esc(course.code)}</strong>
+              <span>${esc(course.name)}</span>
+              <span>${esc(course.term)}</span>
+            </button>
+            <button class="elms-course-hide" type="button" data-hide-course="${esc(course.id)}" aria-label="Hide ${esc(course.code)}">hide</button>
+          </div>
+        `).join('')}</div>` : emptyRow(hiddenCount ? 'All active classes are hidden.' : 'Canvas returned no active classes.')}
       </section>
     `;
   }
 
   function renderCourse() {
     const course = state.data.courses.find((item) => item.id === state.selectedCourseId);
-    if (!course) return emptyRow('Course not found.');
+    if (!course || state.hiddenCourses.has(course.id)) return emptyRow('Course not found.');
 
     const detail = state.courseCache.get(course.id);
     return `
@@ -590,7 +597,10 @@
             <p class="elms-course-kicker tone-${course.tone}">${esc(course.code)}${course.term ? ` · ${esc(course.term)}` : ''}</p>
             <h1>${esc(course.name)}</h1>
           </div>
-          <a href="${esc(course.url)}">canvas ↗</a>
+          <div class="elms-course-actions">
+            <button type="button" data-hide-course="${esc(course.id)}">hide class</button>
+            <a href="${esc(course.url)}">canvas ↗</a>
+          </div>
         </header>
         <nav class="elms-course-tabs" aria-label="Course sections">
           ${['home', 'modules', 'assignments', 'announcements', 'grades'].map((tab) => `
@@ -812,7 +822,7 @@
       });
     });
 
-    state.data.events.forEach((event) => {
+    getVisibleEvents().forEach((event) => {
       const confidence = confirmed.test(event.title) ? 'confirmed' : likely.test(event.title) ? 'likely' : null;
       if (!confidence) return;
       candidates.push({
@@ -900,6 +910,28 @@
   }
 
   function handleClick(event) {
+    const hideCourseButton = event.target.closest('button[data-hide-course]');
+    if (hideCourseButton) {
+      const courseId = hideCourseButton.dataset.hideCourse;
+      state.hiddenCourses.add(courseId);
+      state.courseCache.delete(courseId);
+      if (state.courseFilter === courseId) state.courseFilter = 'all';
+      if (state.selectedCourseId === courseId) {
+        state.selectedCourseId = null;
+        state.view = 'classes';
+      }
+      writeJsonStorage(STORAGE.hiddenCourses, [...state.hiddenCourses]);
+      renderShell();
+      return;
+    }
+
+    if (event.target.closest('button[data-restore-courses]')) {
+      state.hiddenCourses.clear();
+      writeJsonStorage(STORAGE.hiddenCourses, []);
+      syncData();
+      return;
+    }
+
     const courseButton = event.target.closest('button[data-course-open]');
     if (courseButton) {
       openCourse(courseButton.dataset.courseOpen);
@@ -1037,7 +1069,19 @@
   }
 
   function getVisibleTasks() {
-    return state.data.tasks.filter((task) => !state.dismissed.has(task.id));
+    return state.data.tasks.filter((task) => !state.dismissed.has(task.id) && !state.hiddenCourses.has(task.courseId));
+  }
+
+  function getVisibleCourses() {
+    return state.data.courses.filter((course) => !state.hiddenCourses.has(course.id));
+  }
+
+  function getVisibleEvents() {
+    return state.data.events.filter((event) => !state.hiddenCourses.has(event.courseId));
+  }
+
+  function getVisibleMeetings() {
+    return state.meetings.filter((meeting) => !state.hiddenCourses.has(meeting.courseId));
   }
 
   function currentCourseGrade(enrollment) {
