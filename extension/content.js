@@ -451,6 +451,7 @@
   }
 
   function renderMeetingEditor(courses) {
+    const meetings = getVisibleMeetings();
     return `
       <form class="elms-meeting-form">
         <label>
@@ -487,7 +488,7 @@
         <button type="submit">add class</button>
       </form>
       <div class="elms-manual-list">
-        ${getVisibleMeetings().length ? getVisibleMeetings().map((meeting) => `
+        ${meetings.length ? meetings.map((meeting) => `
           <span>
             ${esc(meeting.courseName)} · ${shortWeekday(Number(meeting.day))} ${esc(meeting.start)}
             <button type="button" data-remove-meeting="${esc(meeting.id)}" aria-label="Remove ${esc(meeting.courseName)}">remove</button>
@@ -665,19 +666,31 @@
           <span>${Array.isArray(module.items) ? module.items.length : 0}</span>
         </header>
         <div>
-          ${(module.items || []).map((item) => {
-            const dueAt = parseCanvasDate(item.content_details?.due_at);
-            return `
-              <a class="elms-module-item" href="${esc(safeUrl(item.html_url || item.url || '#'))}">
-                <span>${esc(courseItemType(item.type))}</span>
-                <strong>${esc(cleanText(item.title || 'Untitled item'))}</strong>
-                <small>${dueAt ? esc(dueLabel(dueAt)) : item.completion_requirement?.completed ? 'done' : ''}</small>
-              </a>
-            `;
-          }).join('') || '<p class="elms-empty">Empty module.</p>'}
+          ${(module.items || []).map(renderCourseModuleItem).join('') || '<p class="elms-empty">Empty module.</p>'}
         </div>
       </section>
     `).join('')}</div>`;
+  }
+
+  function renderCourseModuleItem(item) {
+    const title = cleanText(item.title || 'Untitled item');
+    if (item.type === 'SubHeader') {
+      return `<div class="elms-module-subheader"><strong>${esc(title)}</strong></div>`;
+    }
+
+    const dueAt = parseCanvasDate(item.content_details?.due_at);
+    const status = dueAt ? dueLabel(dueAt) : item.completion_requirement?.completed ? 'done' : '';
+    const href = safeContentUrl(item.html_url || item.external_url || '');
+    const body = `
+      <span>${esc(courseItemType(item.type))}</span>
+      <strong>${esc(title)}</strong>
+      <small>${esc(status)}</small>
+    `;
+
+    if (!href) return `<div class="elms-module-item is-static">${body}</div>`;
+
+    const external = new URL(href, window.location.origin).origin !== window.location.origin;
+    return `<a class="elms-module-item" href="${esc(href)}"${external ? ' target="_blank" rel="noreferrer noopener"' : ''}>${body}</a>`;
   }
 
   function renderCourseAssignments(course, detail) {
@@ -1121,11 +1134,13 @@
     if (!value) return '';
 
     const allowed = new Set([
-      'a', 'article', 'b', 'blockquote', 'br', 'code', 'details', 'div', 'em', 'figcaption', 'figure',
+      'a', 'article', 'audio', 'b', 'blockquote', 'br', 'code', 'details', 'div', 'em', 'figcaption', 'figure',
       'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'i', 'img', 'li', 'ol', 'p', 'pre', 's', 'section',
-      'span', 'strong', 'summary', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'u', 'ul',
+      'source', 'span', 'strong', 'summary', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'track',
+      'u', 'ul', 'video',
     ]);
-    const blocked = new Set(['base', 'button', 'embed', 'form', 'iframe', 'input', 'link', 'meta', 'object', 'script', 'style', 'textarea']);
+    const embedded = new Set(['embed', 'iframe', 'object']);
+    const blocked = new Set(['base', 'button', 'form', 'input', 'link', 'meta', 'script', 'style', 'textarea']);
     const parsed = new DOMParser().parseFromString(String(value), 'text/html');
     const output = document.createElement('div');
 
@@ -1135,6 +1150,7 @@
 
       const tag = node.tagName.toLowerCase();
       if (blocked.has(tag)) return null;
+      if (embedded.has(tag)) return createRichEmbed(node, tag);
 
       if (!allowed.has(tag)) {
         const fragment = document.createDocumentFragment();
@@ -1167,6 +1183,36 @@
         if (Number.isFinite(width) && width > 0) element.setAttribute('width', String(width));
         if (Number.isFinite(height) && height > 0) element.setAttribute('height', String(height));
       }
+      if (tag === 'video' || tag === 'audio') {
+        const src = safeContentUrl(node.getAttribute('src'));
+        if (src) element.setAttribute('src', src);
+        element.setAttribute('controls', '');
+        element.setAttribute('preload', 'metadata');
+        if (tag === 'video') {
+          const poster = safeImageUrl(node.getAttribute('poster'));
+          if (poster) element.setAttribute('poster', poster);
+          element.setAttribute('playsinline', '');
+        }
+      }
+      if (tag === 'source') {
+        const src = safeContentUrl(node.getAttribute('src'));
+        if (!src) return null;
+        element.setAttribute('src', src);
+        const type = cleanText(node.getAttribute('type') || '');
+        if (/^(audio|video)\/[a-z0-9.+-]+$/i.test(type)) element.setAttribute('type', type);
+      }
+      if (tag === 'track') {
+        const src = safeContentUrl(node.getAttribute('src'));
+        if (!src) return null;
+        element.setAttribute('src', src);
+        const kind = cleanText(node.getAttribute('kind') || '').toLowerCase();
+        if (['captions', 'chapters', 'descriptions', 'metadata', 'subtitles'].includes(kind)) element.setAttribute('kind', kind);
+        const label = cleanText(node.getAttribute('label') || '');
+        const language = cleanText(node.getAttribute('srclang') || '');
+        if (label) element.setAttribute('label', label);
+        if (/^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i.test(language)) element.setAttribute('srclang', language);
+        if (node.hasAttribute('default')) element.setAttribute('default', '');
+      }
       if (['td', 'th'].includes(tag)) {
         const colspan = Number(node.getAttribute('colspan'));
         const rowspan = Number(node.getAttribute('rowspan'));
@@ -1187,6 +1233,55 @@
       if (copy) output.append(copy);
     });
     return output.innerHTML;
+  }
+
+  function createRichEmbed(node, tag) {
+    let rawSource = tag === 'object' ? node.getAttribute('data') : node.getAttribute('src');
+    if (!rawSource && tag === 'object') {
+      const movie = [...node.querySelectorAll('param')].find((param) => param.getAttribute('name')?.toLowerCase() === 'movie');
+      rawSource = movie?.getAttribute('value') || '';
+    }
+
+    const src = safeContentUrl(rawSource);
+    if (!src) return null;
+
+    const kind = richEmbedKind(src);
+    const title = cleanText(node.getAttribute('title') || (kind === 'video' ? 'Embedded video' : 'Embedded course content'));
+    const figure = document.createElement('figure');
+    figure.className = `elms-rich-embed is-${kind}`;
+
+    const frame = document.createElement('iframe');
+    frame.className = 'elms-rich-frame';
+    frame.setAttribute('src', src);
+    frame.setAttribute('title', title);
+    frame.setAttribute('loading', 'lazy');
+    frame.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    frame.setAttribute('sandbox', 'allow-downloads allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-presentation allow-same-origin allow-scripts');
+    frame.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture');
+    frame.setAttribute('allowfullscreen', '');
+    figure.append(frame);
+
+    const caption = document.createElement('figcaption');
+    const link = document.createElement('a');
+    link.setAttribute('href', src);
+    link.setAttribute('target', '_blank');
+    link.setAttribute('rel', 'noreferrer noopener');
+    link.textContent = 'open embed ↗';
+    caption.append(link);
+    figure.append(caption);
+    return figure;
+  }
+
+  function richEmbedKind(value) {
+    try {
+      const url = new URL(value, window.location.origin);
+      const source = `${url.hostname}${url.pathname}`.toLowerCase();
+      return /(youtube(?:-nocookie)?\.com\/embed|youtu\.be\/|player\.vimeo\.com\/video|panopto|instructuremedia|media_attachments|media_objects|arc\/media)/.test(source)
+        ? 'video'
+        : 'document';
+    } catch {
+      return 'document';
+    }
   }
 
   function safeContentUrl(value) {

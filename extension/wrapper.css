@@ -216,7 +216,7 @@ html.elms-local-active body {
 .elms-mini-assignment strong { font-size: .8rem; }
 .elms-mini-assignment span { color: var(--muted); font-size: .68rem; }
 
-.elms-course-rich { min-width: 0; color: var(--text); font-size: .96rem; line-height: 1.62; }
+.elms-course-rich { min-width: 0; color: var(--text); font-size: .96rem; line-height: 1.62; overflow-wrap: anywhere; }
 .elms-course-rich.compact { font-size: .88rem; }
 .elms-course-rich > :first-child { margin-top: 0; }
 .elms-course-rich > :last-child { margin-bottom: 0; }
@@ -227,8 +227,15 @@ html.elms-local-active body {
 .elms-course-rich p, .elms-course-rich ul, .elms-course-rich ol, .elms-course-rich blockquote { margin: 0 0 1em; }
 .elms-course-rich a { color: var(--pink); text-decoration: underline; text-underline-offset: .15em; }
 .elms-course-rich img { display: block; max-width: 100%; height: auto; margin: 1.4rem auto; }
+.elms-course-rich video { display: block; width: 100%; max-width: 100%; margin: 1.4rem 0; background: #000; }
+.elms-course-rich audio { display: block; width: 100%; max-width: 100%; margin: 1.4rem 0; }
 .elms-course-rich figure { margin: 1.5rem 0; }
 .elms-course-rich figcaption { margin-top: -.9rem; color: var(--muted); font-size: .72rem; text-align: center; }
+.elms-course-rich .elms-rich-embed { width: 100%; max-width: 100%; overflow: hidden; border: 1px solid var(--rule-strong); background: rgba(0, 0, 0, .12); }
+.elms-course-rich .elms-rich-frame { display: block; width: 100%; border: 0; background: #fff; }
+.elms-course-rich .elms-rich-embed.is-video .elms-rich-frame { aspect-ratio: 16 / 9; height: auto; }
+.elms-course-rich .elms-rich-embed.is-document .elms-rich-frame { height: clamp(26rem, 52vw, 36rem); }
+.elms-course-rich .elms-rich-embed figcaption { margin: 0; padding: .42rem .6rem; border-top: 1px solid var(--rule); font-size: .68rem; text-align: right; }
 .elms-course-rich blockquote { padding-left: 1rem; border-left: 2px solid var(--purple); color: var(--muted); }
 .elms-course-rich pre { max-width: 100%; overflow-x: auto; padding: .8rem; border: 1px solid var(--rule); font: .76rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .elms-course-rich code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .86em; }
@@ -243,8 +250,11 @@ html.elms-local-active body {
 .elms-module > header span { color: var(--muted); font-size: .72rem; }
 .elms-module-item { display: grid; grid-template-columns: 5rem minmax(0, 1fr) auto; align-items: baseline; gap: .8rem; padding: .62rem 0; border-top: 1px solid var(--rule); }
 .elms-module-item > span { color: var(--muted); font-size: .68rem; text-transform: uppercase; }
-.elms-module-item strong { min-width: 0; overflow: hidden; font-size: .9rem; text-overflow: ellipsis; white-space: nowrap; }
+.elms-module-item strong { min-width: 0; font-size: .9rem; line-height: 1.35; overflow-wrap: anywhere; }
 .elms-module-item small { color: var(--muted); font-size: .7rem; }
+.elms-module-item.is-static { color: var(--muted); }
+.elms-module-subheader { padding: 1.15rem 0 .4rem; border-top: 1px solid var(--rule); color: var(--purple); }
+.elms-module-subheader strong { font-size: .74rem; letter-spacing: .035em; text-transform: uppercase; }
 
 .elms-course-assignment-list, .elms-grade-list { display: grid; }
 .elms-course-assignment { display: grid; grid-template-columns: .5rem minmax(0, 1fr) auto; align-items: center; gap: .8rem; padding: .75rem 0; border-bottom: 1px solid var(--rule); }
