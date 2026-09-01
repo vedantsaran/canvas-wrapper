@@ -1,0 +1,330 @@
+html.elms-local-active,
+html.elms-local-active body {
+  min-height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: auto !important;
+  background: #1c1f26 !important;
+}
+
+#elms-local-root,
+#elms-local-root *,
+#elms-local-root *::before,
+#elms-local-root *::after {
+  box-sizing: border-box;
+}
+
+#elms-local-root {
+  --bg: #1c1f26;
+  --text: #e5e0d5;
+  --muted: rgba(229, 224, 213, .64);
+  --faint: rgba(229, 224, 213, .38);
+  --rule: rgba(229, 224, 213, .16);
+  --rule-strong: rgba(229, 224, 213, .27);
+  --pink: #d878a8;
+  --purple: #a878d8;
+  --gold: #c8a878;
+  --blue: #78a8d8;
+  --green: #a8c878;
+  min-height: 100vh;
+  padding: clamp(.8rem, 2vw, 1.5rem);
+  background: var(--bg);
+  color: var(--text);
+  font: 19px/1.56 Georgia, 'Times New Roman', serif;
+  text-rendering: optimizeLegibility;
+  transition: background-color .22s ease, color .22s ease;
+}
+
+#elms-local-root[data-theme='light'] {
+  --bg: #f7f7f9;
+  --text: #1a1a1a;
+  --muted: rgba(26, 26, 26, .62);
+  --faint: rgba(26, 26, 26, .38);
+  --rule: rgba(26, 26, 26, .15);
+  --rule-strong: rgba(26, 26, 26, .26);
+  --pink: #c6397d;
+  --purple: #7d39c6;
+  --gold: #8a6425;
+  --blue: #2f6fab;
+  --green: #496f1f;
+}
+
+:where(#elms-local-root) button,
+:where(#elms-local-root) input,
+:where(#elms-local-root) select {
+  color: inherit;
+  font: inherit;
+}
+
+:where(#elms-local-root) button { cursor: pointer; }
+:where(#elms-local-root) a { color: inherit; text-decoration: none; }
+:where(#elms-local-root) a:hover { text-decoration: underline; text-underline-offset: .15em; }
+:where(#elms-local-root) button:focus-visible,
+:where(#elms-local-root) a:focus-visible,
+:where(#elms-local-root) input:focus-visible,
+:where(#elms-local-root) select:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+
+.elms-side-rail {
+  position: fixed;
+  top: 4.8rem;
+  left: max(1rem, calc(50% - 21rem - clamp(2.5rem, 6vw, 5.5rem) - 7.5rem));
+  width: 7.5rem;
+}
+
+.elms-wordmark {
+  margin: 0 0 2rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.elms-nav { display: flex; flex-direction: column; align-items: flex-start; gap: .3rem; }
+.elms-nav button { position: relative; padding: 0; border: 0; background: none; color: var(--text); font-weight: 700; font-size: .94rem; line-height: 1.55; }
+.elms-nav button.is-active::before { content: '•'; position: absolute; left: -.95rem; top: 50%; transform: translateY(-49%); }
+
+.elms-main { width: min(100%, 42rem); min-height: calc(100vh - 3rem); margin: 0 auto; padding: 2.15rem 0 6rem; }
+#elms-local-root[data-view='schedule'] .elms-main,
+#elms-local-root[data-view='course'] .elms-main { width: min(100%, calc(100vw - 20rem), 60rem); }
+#elms-local-root[data-view='schedule'] .elms-side-rail,
+#elms-local-root[data-view='course'] .elms-side-rail { left: 1rem; }
+#elms-local-root[data-view='schedule'] .elms-status-rail,
+#elms-local-root[data-view='course'] .elms-status-rail { right: 1rem; }
+.elms-top-line { display: flex; align-items: baseline; justify-content: space-between; color: var(--muted); font-size: .87rem; }
+.elms-top-actions { display: inline-flex; align-items: baseline; gap: .65rem; }
+.elms-theme { display: inline-flex; gap: .22rem; }
+.elms-theme button, .elms-back { padding: 0; border: 0; background: none; color: var(--pink); }
+.elms-theme button.is-selected { color: var(--text); font-weight: 700; cursor: default; }
+.elms-theme span { color: var(--muted); }
+.elms-back { color: var(--muted); font-size: .8rem; }
+
+.elms-page-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding-top: 3.2rem; }
+.elms-page-heading h1 { margin: 0; color: var(--text); font-size: 1.45rem; line-height: 1.1; }
+.elms-page-heading p { margin: 0; color: var(--muted); font-size: .9rem; }
+.elms-page-heading button { padding: 0; border: 0; background: none; color: var(--purple); font-size: .86rem; font-weight: 700; }
+.elms-page-meta { display: flex; align-items: baseline; gap: .8rem; text-align: right; }
+
+.elms-section { margin-top: 2.75rem; }
+.elms-section.elms-flush { margin-top: 1rem; }
+.elms-section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding-bottom: .58rem; border-bottom: 1px solid var(--rule); }
+.elms-section-heading h2 { margin: 0; color: var(--blue); font-size: 1rem; line-height: 1.2; text-transform: lowercase; }
+.elms-section-heading button { padding: 0; border: 0; background: none; color: var(--muted); font-size: .82rem; }
+
+.elms-task-list { display: grid; }
+.elms-task { position: relative; display: grid; grid-template-columns: 1.15rem minmax(0, 1fr) auto auto; align-items: center; gap: .8rem; padding: .85rem 0; border-bottom: 1px solid var(--rule); }
+.elms-task input { position: absolute; opacity: 0; pointer-events: none; }
+.elms-check { width: .8rem; height: .8rem; border: 1px solid var(--muted); border-radius: 50%; cursor: pointer; }
+.elms-task input:checked + .elms-check { border-color: var(--green); background: var(--green); box-shadow: inset 0 0 0 2px var(--bg); }
+.elms-task.is-complete .elms-task-copy,
+.elms-task.is-complete > time { opacity: .42; text-decoration: line-through; }
+.elms-task-copy { display: grid; min-width: 0; line-height: 1.24; }
+.elms-task-copy a { display: block; width: 100%; overflow: hidden; font-size: .98rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.elms-course-label { font-size: .7rem; font-weight: 700; letter-spacing: .035em; line-height: 1.25; text-transform: uppercase; }
+.elms-task > time { color: var(--muted); font-size: .78rem; white-space: nowrap; }
+.elms-dismiss, .elms-restore { padding: 0; border: 0; background: none; color: var(--pink); font-size: .72rem; }
+.elms-dismiss { opacity: .72; }
+.elms-dismiss:hover { opacity: 1; text-decoration: underline; text-underline-offset: .15em; }
+
+.elms-event-list { margin: 0; padding: .38rem 0 0; list-style: none; }
+.elms-event-list li { display: grid; grid-template-columns: 3.2rem .45rem minmax(0, 1fr); align-items: start; gap: .62rem; padding: .65rem 0; }
+.elms-event-list time { padding-top: .1rem; color: var(--muted); font-size: .78rem; }
+.elms-dot { width: .38rem; height: .38rem; margin-top: .45rem; border-radius: 50%; background: currentColor; }
+.elms-event-list a, .elms-event-list small { display: block; line-height: 1.25; }
+.elms-event-list a { width: max-content; max-width: 100%; font-size: .95rem; font-weight: 700; }
+.elms-event-list small { margin-top: .14rem; color: var(--muted); font-size: .76rem; }
+
+.elms-empty { margin: 0; padding: 1rem 0; border-bottom: 1px solid var(--rule); color: var(--muted); font-size: .92rem; }
+.elms-note { margin: 1.35rem 0 0; color: var(--muted); font-size: .76rem; line-height: 1.4; }
+.elms-filter-line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.5rem; color: var(--muted); font-size: .82rem; }
+.elms-filter-line label { display: inline-flex; align-items: center; gap: .45rem; }
+.elms-restore { margin-left: auto; }
+#elms-local-root select,
+#elms-local-root input[type='time'],
+#elms-local-root input[type='text'] { min-height: 1.85rem; padding: .12rem .45rem; border: 1px solid var(--rule-strong); border-radius: 0; background: var(--bg); }
+#elms-local-root input[type='checkbox'] { accent-color: var(--green); }
+
+.elms-next-exam { display: grid; grid-template-columns: 5.5rem 1fr auto; gap: .65rem; align-items: baseline; padding: .85rem 0; border-bottom: 1px solid var(--rule); }
+.elms-next-exam time { color: var(--muted); font-size: .78rem; }
+
+.elms-week-controls { display: flex; justify-content: space-between; margin-top: 1.5rem; }
+.elms-week-controls button { padding: 0; border: 0; background: none; color: var(--muted); font-size: .8rem; }
+.elms-week-grid { display: grid; grid-template-columns: repeat(7, minmax(6.2rem, 1fr)); margin-top: 1.15rem; overflow-x: auto; border-top: 1px solid var(--rule); border-left: 1px solid var(--rule); }
+.elms-day { min-height: 22rem; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.elms-day-heading { display: flex; justify-content: space-between; padding: .45rem .5rem; border-bottom: 1px solid var(--rule); color: var(--muted); }
+.elms-day-heading span { font-size: .7rem; }
+.elms-day-heading strong { font-size: .82rem; }
+.elms-day.is-today .elms-day-heading { color: var(--blue); }
+.elms-day-events { display: grid; gap: .38rem; padding: .42rem; }
+.elms-calendar-entry { min-width: 0; padding: .42rem .42rem .48rem; border-top: 2px solid; background: color-mix(in srgb, var(--text) 4%, transparent); line-height: 1.15; }
+.elms-calendar-entry time, .elms-calendar-entry strong, .elms-calendar-entry small { display: block; }
+.elms-calendar-entry time { color: var(--muted); font-size: .64rem; }
+.elms-calendar-entry strong { margin-top: .14rem; overflow: hidden; font-size: .74rem; text-overflow: ellipsis; }
+.elms-calendar-entry small { margin-top: .18rem; overflow: hidden; color: var(--muted); font-size: .62rem; text-overflow: ellipsis; }
+
+.elms-meeting-form { display: grid; grid-template-columns: 1.2fr 1fr .75fr .75fr; gap: .65rem; margin-top: 1.2rem; padding: .9rem 0 1rem; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.elms-meeting-form label { display: grid; align-content: start; gap: .2rem; color: var(--muted); font-size: .72rem; }
+.elms-meeting-form .elms-location { grid-column: span 3; }
+.elms-meeting-form button { align-self: end; min-height: 1.85rem; border: 1px solid var(--text); background: var(--text); color: var(--bg); font-size: .8rem; }
+.elms-manual-list { display: flex; flex-wrap: wrap; gap: .4rem .8rem; margin-top: .8rem; color: var(--muted); font-size: .72rem; }
+.elms-manual-list button { padding: 0; border: 0; background: none; color: var(--purple); }
+
+.elms-exam-list { display: grid; }
+.elms-exam { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr) auto 2rem; align-items: center; gap: .85rem; padding: .85rem 0; border-bottom: 1px solid var(--rule); }
+.elms-exam > time { display: grid; place-items: center; line-height: 1; }
+.elms-exam > time strong { font-size: 1.12rem; }
+.elms-exam > time span { margin-top: .15rem; color: var(--muted); font-size: .62rem; text-transform: uppercase; }
+.elms-exam-copy { display: grid; min-width: 0; line-height: 1.2; }
+.elms-exam-copy > strong { margin-top: .14rem; overflow: hidden; font-size: .95rem; text-overflow: ellipsis; white-space: nowrap; }
+.elms-exam-copy small { margin-top: .18rem; color: var(--muted); font-size: .7rem; }
+.elms-confidence { padding: .06rem .38rem .1rem; border: 1px solid var(--rule-strong); border-radius: 999px; color: var(--gold); font-size: .62rem; }
+.elms-confidence.confirmed { color: var(--green); }
+.elms-countdown { color: var(--muted); font-size: .72rem; text-align: right; }
+
+.elms-course-list { display: grid; }
+.elms-course { display: grid; width: 100%; grid-template-columns: 5.5rem minmax(0, 1fr) auto; gap: .65rem; align-items: baseline; padding: .72rem 0; border: 0; border-bottom: 1px solid var(--rule); background: none; color: var(--text); text-align: left; }
+.elms-course > span:nth-child(2) { overflow: hidden; font-size: .94rem; text-overflow: ellipsis; white-space: nowrap; }
+.elms-course > span:last-child { color: var(--muted); }
+.elms-course:hover > span:nth-child(2) { text-decoration: underline; text-underline-offset: .15em; }
+
+.elms-course-shell { padding-top: 2.7rem; }
+.elms-course-back { padding: 0; border: 0; background: none; color: var(--muted); font-size: .78rem; }
+.elms-course-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin-top: 1.5rem; }
+.elms-course-header h1 { max-width: 48rem; margin: .3rem 0 0; font-size: clamp(1.8rem, 4vw, 3.2rem); font-weight: 400; line-height: 1.02; letter-spacing: -.035em; }
+.elms-course-header > a { flex: none; color: var(--pink); font-size: .8rem; }
+.elms-course-kicker { margin: 0; font-size: .72rem; font-weight: 700; letter-spacing: .045em; text-transform: uppercase; }
+.elms-course-tabs { display: flex; gap: 1.3rem; margin-top: 2.35rem; overflow-x: auto; border-bottom: 1px solid var(--rule); }
+.elms-course-tabs button { position: relative; flex: none; padding: 0 0 .52rem; border: 0; background: none; color: var(--muted); font-size: .82rem; }
+.elms-course-tabs button.is-active { color: var(--text); font-weight: 700; }
+.elms-course-tabs button.is-active::after { position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: var(--blue); content: ''; }
+.elms-course-content { margin-top: 1.5rem; }
+.elms-course-hero { width: 100%; max-height: 31rem; overflow: hidden; border: 1px solid var(--rule); }
+.elms-course-hero img { display: block; width: 100%; height: clamp(17rem, 42vw, 31rem); object-fit: cover; }
+.elms-course-home-grid { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: clamp(2rem, 5vw, 4.5rem); margin-top: 2rem; align-items: start; }
+.elms-course-home-grid.without-page { grid-template-columns: minmax(0, 1fr); }
+.elms-course-glance { display: grid; gap: 1.8rem; }
+.elms-course-glance section { padding-top: .55rem; border-top: 1px solid var(--rule); }
+.elms-course-glance h2 { margin: 0 0 .75rem; color: var(--blue); font-size: .78rem; text-transform: lowercase; }
+.elms-course-glance p { margin: 0; color: var(--muted); font-size: .82rem; }
+.elms-grade-large { display: block; color: var(--green); font-size: 1.65rem; font-weight: 400; line-height: 1.1; }
+.elms-mini-assignment { display: grid; gap: .12rem; padding: .5rem 0; border-bottom: 1px solid var(--rule); line-height: 1.25; }
+.elms-mini-assignment strong { font-size: .8rem; }
+.elms-mini-assignment span { color: var(--muted); font-size: .68rem; }
+
+.elms-course-rich { min-width: 0; color: var(--text); font-size: .96rem; line-height: 1.62; }
+.elms-course-rich.compact { font-size: .88rem; }
+.elms-course-rich > :first-child { margin-top: 0; }
+.elms-course-rich > :last-child { margin-bottom: 0; }
+.elms-course-rich h1, .elms-course-rich h2, .elms-course-rich h3, .elms-course-rich h4 { margin: 1.5em 0 .55em; line-height: 1.15; }
+.elms-course-rich h1 { font-size: 1.7rem; }
+.elms-course-rich h2 { color: var(--blue); font-size: 1.3rem; }
+.elms-course-rich h3 { font-size: 1.08rem; }
+.elms-course-rich p, .elms-course-rich ul, .elms-course-rich ol, .elms-course-rich blockquote { margin: 0 0 1em; }
+.elms-course-rich a { color: var(--pink); text-decoration: underline; text-underline-offset: .15em; }
+.elms-course-rich img { display: block; max-width: 100%; height: auto; margin: 1.4rem auto; }
+.elms-course-rich figure { margin: 1.5rem 0; }
+.elms-course-rich figcaption { margin-top: -.9rem; color: var(--muted); font-size: .72rem; text-align: center; }
+.elms-course-rich blockquote { padding-left: 1rem; border-left: 2px solid var(--purple); color: var(--muted); }
+.elms-course-rich pre { max-width: 100%; overflow-x: auto; padding: .8rem; border: 1px solid var(--rule); font: .76rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.elms-course-rich code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .86em; }
+.elms-course-rich table { display: block; width: 100%; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+.elms-course-rich th, .elms-course-rich td { padding: .45rem .55rem; border: 1px solid var(--rule); text-align: left; }
+.elms-course-rich hr { margin: 2rem 0; border: 0; border-top: 1px solid var(--rule); }
+
+.elms-module-list, .elms-announcement-list { display: grid; gap: 2rem; }
+.elms-module { border-top: 1px solid var(--rule-strong); }
+.elms-module > header { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding: .75rem 0; }
+.elms-module > header h2 { margin: 0; color: var(--blue); font-size: 1rem; }
+.elms-module > header span { color: var(--muted); font-size: .72rem; }
+.elms-module-item { display: grid; grid-template-columns: 5rem minmax(0, 1fr) auto; align-items: baseline; gap: .8rem; padding: .62rem 0; border-top: 1px solid var(--rule); }
+.elms-module-item > span { color: var(--muted); font-size: .68rem; text-transform: uppercase; }
+.elms-module-item strong { min-width: 0; overflow: hidden; font-size: .9rem; text-overflow: ellipsis; white-space: nowrap; }
+.elms-module-item small { color: var(--muted); font-size: .7rem; }
+
+.elms-course-assignment-list, .elms-grade-list { display: grid; }
+.elms-course-assignment { display: grid; grid-template-columns: .5rem minmax(0, 1fr) auto; align-items: center; gap: .8rem; padding: .75rem 0; border-bottom: 1px solid var(--rule); }
+.elms-assignment-mark { width: .38rem; height: .38rem; border-radius: 50%; background: currentColor; }
+.elms-course-assignment > span:nth-child(2) { display: grid; min-width: 0; }
+.elms-course-assignment strong { overflow: hidden; font-size: .92rem; text-overflow: ellipsis; white-space: nowrap; }
+.elms-course-assignment small, .elms-course-assignment > span:last-child { color: var(--muted); font-size: .72rem; }
+.elms-announcement { padding-top: .8rem; border-top: 1px solid var(--rule-strong); }
+.elms-announcement > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.elms-announcement h2 { margin: 0; color: var(--blue); font-size: 1.05rem; }
+.elms-announcement header p { margin: .2rem 0 0; color: var(--muted); font-size: .7rem; }
+.elms-announcement header a { color: var(--pink); font-size: .72rem; }
+.elms-grade-summary { display: flex; align-items: baseline; justify-content: space-between; padding: 1rem 0 1.4rem; border-bottom: 1px solid var(--rule-strong); }
+.elms-grade-summary span { color: var(--muted); font-size: .8rem; }
+.elms-grade-summary strong { color: var(--green); font-size: 2rem; font-weight: 400; }
+.elms-grade-list a { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding: .68rem 0; border-bottom: 1px solid var(--rule); font-size: .88rem; }
+.elms-grade-list strong { flex: none; color: var(--green); }
+
+.tone-blue { color: var(--blue) !important; }
+.tone-pink { color: var(--pink) !important; }
+.tone-purple { color: var(--purple) !important; }
+.tone-gold { color: var(--gold) !important; }
+.tone-green { color: var(--green) !important; }
+.border-blue { border-top-color: var(--blue); }
+.border-pink { border-top-color: var(--pink); }
+.border-purple { border-top-color: var(--purple); }
+.border-gold { border-top-color: var(--gold); }
+.border-green { border-top-color: var(--green); }
+
+.elms-status-rail { position: fixed; top: 4.8rem; right: max(1rem, calc(50% - 21rem - clamp(2.5rem, 6vw, 5.5rem) - 7.2rem)); width: 7.2rem; }
+.elms-status-rail p { margin: 0 0 .12rem; color: var(--muted); font-size: .72rem; }
+.elms-status-rail button { display: block; margin-top: .45rem; padding: 0; border: 0; background: none; color: var(--blue); font-size: .76rem; font-weight: 700; }
+.elms-gate { display: grid; min-height: calc(100vh - 3rem); place-items: center; }
+.elms-gate-inner { width: min(100%, 20rem); }
+.elms-gate h1 { margin: 0 0 1.4rem; font-size: 1.45rem; }
+.elms-gate p { color: var(--muted); font-size: .88rem; }
+.elms-gate a, .elms-gate button { padding: 0; border: 0; background: none; color: var(--pink); font-weight: 700; }
+
+@media (max-width: 1160px) {
+  #elms-local-root[data-view='schedule'] .elms-main,
+  #elms-local-root[data-view='course'] .elms-main { width: min(100%, 60rem); }
+  .elms-side-rail, .elms-status-rail { position: static; width: min(100%, 42rem); margin: 0 auto; }
+  .elms-side-rail { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding-top: 1rem; }
+  .elms-wordmark { margin: 0; }
+  .elms-nav { flex-flow: row wrap; gap: .35rem 1.2rem; }
+  .elms-nav button.is-active::before { display: none; }
+  .elms-main { min-height: auto; padding-top: 1.6rem; padding-bottom: 3rem; }
+  .elms-status-rail { display: flex; align-items: baseline; gap: .8rem; padding-bottom: 2rem; }
+  .elms-status-rail p, .elms-status-rail button { margin: 0; }
+  .elms-status-rail p:nth-child(2) { margin-right: auto; }
+}
+
+@media (max-width: 720px) {
+  #elms-local-root { padding: 1rem; font-size: 17px; }
+  .elms-side-rail { display: block; }
+  .elms-wordmark { margin-bottom: .7rem; }
+  .elms-nav { gap: .35rem 1rem; }
+  .elms-main { padding-top: 1.35rem; }
+  .elms-page-heading { padding-top: 2.35rem; }
+  .elms-page-heading, .elms-page-meta { align-items: flex-start; flex-direction: column; }
+  .elms-page-meta { gap: .25rem; text-align: left; }
+  .elms-task { grid-template-columns: 1.05rem minmax(0, 1fr); }
+  .elms-task > time { grid-column: 2; margin-top: -.5rem; }
+  .elms-dismiss { grid-column: 2; justify-self: start; margin-top: -.55rem; }
+  .elms-week-grid { grid-template-columns: repeat(7, 7.4rem); padding-bottom: .4rem; }
+  .elms-day { min-height: 18rem; }
+  .elms-meeting-form { grid-template-columns: 1fr 1fr; }
+  .elms-meeting-form .elms-location { grid-column: 1 / -1; }
+  .elms-meeting-form button { grid-column: 1 / -1; }
+  .elms-filter-line { align-items: flex-start; flex-direction: column; }
+  .elms-restore { margin-left: 0; }
+  .elms-exam { grid-template-columns: 2.2rem minmax(0, 1fr) auto; gap: .65rem; }
+  .elms-countdown { display: none; }
+  .elms-course-header { align-items: flex-start; flex-direction: column; gap: .8rem; }
+  .elms-course-tabs { gap: 1rem; }
+  .elms-course-home-grid { grid-template-columns: minmax(0, 1fr); }
+  .elms-course-glance { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .elms-module-item { grid-template-columns: 4rem minmax(0, 1fr); }
+  .elms-module-item small { grid-column: 2; margin-top: -.45rem; }
+}
+
+@media (max-width: 500px) {
+  .elms-course-glance { grid-template-columns: minmax(0, 1fr); }
+  .elms-course { grid-template-columns: 5rem minmax(0, 1fr); }
+  .elms-course > span:last-child { grid-column: 2; }
+  .elms-course-assignment { grid-template-columns: .45rem minmax(0, 1fr); }
+  .elms-course-assignment > span:last-child { grid-column: 2; }
+}

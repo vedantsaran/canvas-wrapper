@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "ELMS Local",
+  "version": "0.2.0",
+  "description": "A read-only, simplified wrapper for UMD ELMS Canvas.",
+  "action": {
+    "default_title": "Open ELMS Local"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "https://umd.instructure.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://umd.instructure.com/*"],
+      "css": ["wrapper.css"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
